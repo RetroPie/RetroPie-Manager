@@ -3,9 +3,98 @@
 
 {% block manager_content %}
 {% if PSUTIL_AVAILABLE %}
+
+<script src="https://code.jquery.com/jquery-3.1.0.min.js"></script>
+
+<script>
+    function start(){
+        window.setInterval(function(){
+            update();
+        },3000);
+    }
+
+    function update(){
+        $.ajax({
+            url: '/monitor_update/',
+            data: {},
+            datatype: 'json',
+            success: function (data){
+                for  (i=0; i < data.cpu_infos.count; i++){
+                    document.getElementById("core_use_num_"+(i+1)).innerHTML = data.cpu_infos.usage[i].toFixed(0)+"%";
+                    document.getElementById("core_fill_"+(i+1)).style = "width: "+data.cpu_infos.usage[i]+"%";
+                }
+                document.getElementById("memory_free").innerHTML = "Free: "+filesizeformat(data.memory_infos.free_unified, 1, 1)
+                document.getElementById("memory_fill").style="width: "+data.memory_infos.usage_percent+"%";
+                document.getElementById("memory_percent").innerHTML=data.memory_infos.usage_percent.toFixed(0)+"%";
+                document.getElementById("memory_total").innerHTML="Total: "+filesizeformat(data.memory_infos.total,1,1);
+                
+                document.getElementById("cpu_thermal_current").innerHTML = data.cpu_thermal_infos.current + "°c";
+                document.getElementById("cpu_thermal_max").innerHTML = "Max: " + data.cpu_thermal_infos.max.toFixed(1) + "°c";
+                
+                for (i=0; i < data.filesystem_infos.length; i++){
+                    deviceData = data.filesystem_infos[i];
+                    childNodes = document.getElementById("device_"+(i+1)).children;
+                    if (childNodes[0].innerHTML == deviceData.device){
+                        childNodes[1].innerHTML = deviceData.mountpoint;
+                        childNodes[2].innerHTML = deviceData.fstype;
+                        childNodes[4].innerHTML = filesizeformat(deviceData.used_bytes,1,1)
+                        childNodes[5].innerHTML = filesizeformat(deviceData.free,1,1)
+                        childNodes[6].innerHTML = filesizeformat(deviceData.total,1,1);
+                        usageNodes = childNodes[3].children[0].children;
+                        usageNodes[0].style = "width: "+deviceData.used_percent+"%";
+                        usageNodes[1].innerHTML = +deviceData.used_percent+"%";
+                    }
+                    else{
+                        //TODO update if filesystem changes (e.g. if a USB is plugged in)
+                    }
+                }
+            }
+        });
+    }
+
+    $(document).ready(function($) {
+        start()
+    });
+
+    function filesizeformat(bytes, binary, precision) {
+        /*
+            FROM https://gist.github.com/julianhille/348ba88ba2b482f50086
+            Javascript filesizeformater.
+            Inspired by jinja2 and some gists.
+            @version 1.0.0
+            @copyright 2014 Julian Hille
+            @author Julian Hille
+        */
+        binary = typeof binary !== 'undefined' ? binary : false;
+        precision = typeof precision !== 'undefined' ? precision : 2;
+        var base = binary ? 1024 : 1000;
+        var prefixes = [
+            (binary ? 'KB' : 'kB'),
+            (binary ? 'MB' : 'MB'),
+            (binary ? 'GB' : 'GB'),
+            (binary ? 'TB' : 'TB'),
+            (binary ? 'PB' : 'PB'),
+            (binary ? 'EB' : 'EB'),
+            (binary ? 'ZB' : 'ZB'),
+            (binary ? 'YB' : 'YB')
+        ]
+        if (!isFinite(bytes)) {
+          return '- Bytes';
+        }
+        else if (bytes == 1) {
+            return '1 Byte';
+        }
+        else if (bytes < base) {
+            return bytes + ' Bytes';
+        }
+        var index = Math.floor(Math.log(bytes) / Math.log(base));
+        return parseFloat((bytes / Math.pow(base, Math.floor(index))).toFixed(precision)).toString() +  ' ' + prefixes[index-1];
+}
+</script>
+
 <div class="dashboard-system-infos">
 
-    <div class="row cpu">
+    <div class="row cpu" onload="start()">
         <div class="small-12 columns">
             <p class="title-3">{% trans "CPU" %}</p>
         </div>
@@ -16,9 +105,9 @@
                     <p>{% blocktrans with number=forloop.counter %}Core&nbsp;{{ number }}{% endblocktrans %}</p>
                 </div>
                 <div class="small-12 medium-8 columns core-usage-progress">
-                    <div class="progress success radius">
-                        <span class="meter" style="width: {{ core_int }}%"></span>
-                        <span class="value">{{ core_int }}%</span>
+                    <div class="progress success radius" id="core_use_{{ forloop.counter }}">
+                        <span class="meter" style="width: {{ core_int }}%"  id="core_fill_{{ forloop.counter }}"></span>
+                        <span class="value"  id="core_use_num_{{ forloop.counter }}">{{ core_int }}%</span>
                     </div>
                 </div>
             </div>
@@ -35,16 +124,16 @@
                 <div class="small-12 columns">
                     <p class="title-3">{% trans "Memory" %}</p>
                 </div>
-                <div class="small-12 medium-3 columns medium-text-right free">
+                <div class="small-12 medium-3 columns medium-text-right free" id="memory_free">
                     {% blocktrans with size=memory_infos.free_unified|filesizeformat %}Free: {{ size }}{% endblocktrans %}
                 </div>
                 <div class="small-12 medium-6 columns usage">
                     <div class="progress success radius">
-                        <span class="meter" style="width: {{ memory_usage_int }}%"></span>
-                        <span class="value">{{ memory_usage_int }}%</span>
+                        <span class="meter" style="width: {{ memory_usage_int }}%" id="memory_fill"></span>
+                        <span class="value" id="memory_percent">{{ memory_usage_int }}%</span>
                     </div>
                 </div>
-                <div class="small-12 medium-3 columns medium-text-left total">
+                <div class="small-12 medium-3 columns medium-text-left total" id="memory_total">
                     {% blocktrans with size=memory_infos.total|filesizeformat %}Total: {{ size }}{% endblocktrans %}
                 </div>
                 {% endwith %}
@@ -52,8 +141,8 @@
         </div>
         <div class="small-12 columns medium-3 thermal-cpu-infos">
             <p class="title-3">{% trans "CPU Temperature" %}</p>
-            <p class="text-center"><span class="biggest">{{ cpu_thermal_infos.current }}°c</span></p>
-            <p class="text-center">{% trans "Max" %}: {{ cpu_thermal_infos.max }}°c</p>
+            <p class="text-center"><span class="biggest" id="cpu_thermal_current">{{ cpu_thermal_infos.current }}°c</span></p>
+            <p class="text-center" id="cpu_thermal_max">{% trans "Max" %}: {{ cpu_thermal_infos.max }}°c</p>
         </div>
     </div>
 
@@ -76,7 +165,7 @@
                 </thead>
                 <tbody>
                     {% for disk in filesystem_infos %}{% with usage_percent=disk.used_percent|floatformat:"0" %}
-                    <tr class="device-item">
+                    <tr class="device-item" id="device_{{ forloop.counter }}">
                         <td class="device">{{ disk.device }}</td>
                         <td class="mountpoint">{{ disk.mountpoint }}</td>
                         <td class="type">{{ disk.fstype }}</td>

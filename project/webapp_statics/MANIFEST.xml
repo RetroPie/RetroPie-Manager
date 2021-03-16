@@ -244,12 +244,16 @@
          <extension>img</extension>
          <extension>bin</extension>
          <extension>iso</extension>
+         <extension>pbp</extension>
       </extensions>
       <download_links>
          <link>http://www.mondemul.net/machine.php?type=psx</link>
       </download_links>
       <bios>
-         <file md5="924e392ed05558ffdb115408c263dccf">SCPH1001.BIN</file>
+         <file md5="924e392ed05558ffdb115408c263dccf">scph1001.bin</file>
+         <file md5="8dd7d5296a650fac7319bce665a6a53c">scph5500.bin</file>
+         <file md5="924e392ed05558ffdb115408c263dccf">scph5501.bin</file>
+         <file md5="e56ec1b027e2fe8a49217d9678f7f6bb">scph5502.bin</file>
       </bios>
    </system>
    <system key="scummvm" name="ScummVM">

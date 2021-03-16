@@ -15,7 +15,8 @@
                 });
             },
             'url': "{% url 'manager:roms-upload' system=system %}",
-            'paramName': "{{ upload_form.rom.name }}"
+            'paramName': "{{ upload_form.rom.name }}",
+            'maxFilesize': 10240
         };
     //]]>
     </script>

@@ -1,15 +1,8 @@
-# WARNING: THIS PROJECT IS NOT MAINTAINED ANYMORE. Feel free to fork and work on it.
 
-# Retropie-Manager
-Recalbox-Manager fork for RetroPie 4.x
-
-![alt tag](https://github.com/RetroPie/RetroPie-Manager/blob/retropie/screenshot.png)
-
+# Retropie-Manager-Plus
 # About
-
-This a Recalbox-Manager fork aimed to be used with RetroPie 4.x.
-
-Original repository: https://github.com/recalbox/recalbox-manager
+This an enhanced RetroPie-Manager fork.
+Original RetroPie-Manager repository: https://github.com/RetroPie/RetroPie-Manager
 
 # Features
 With Retropie-Manager you can
@@ -22,19 +15,9 @@ With Retropie-Manager you can
 - Manage your ROMS
 
 # Limitations
-
-- In this release the virtual gamepad page has been removed.
-- It doesn't support subdirectories at ROMs dir (as reported [here](https://github.com/RetroPie/RetroPie-Manager/issues/5))
-
+- It doesn't support subdirectories at ROMs dir (as reported [here](https://github.com/botolo78/RetroPie-Manager/issues/5))
 
 # Install
-
-## RetroPie-Setup script
-
-Execute the RetroPie-Setup, choose "Manage packages" -> "Manage experimental packages" -> "retropie-manager".
-
-## Old Method
-
 **Dependencies on Raspberry Pi**
 
 ```sh
@@ -50,8 +33,8 @@ sudo apt-get install python-virtualenv python-dev
 **Installing RetroPie-Manager**
 ```sh
 cd
-git clone https://github.com/RetroPie/RetroPie-Manager.git
-cd RetroPie-Manager
+git clone https://github.com/NicholasBerryman/RetroPie-Manager-Plus.git
+cd RetroPie-Manager-Plus
 make install
 ```
 
@@ -100,17 +83,13 @@ user uses both, only the first works.
 
 
 # Autostart
-To make Retropie-Manager to start with your raspberry edit your autostart.sh
-
-```sh
-sudo nano /opt/retropie/configs/all/autostart.sh
+To make Retropie-Manager to start with your RetroPie machine simply add it as a reboot Cronjob.
+First, run
+```crontab -e```
+Then, add the following line to the end of the file:
 ```
-and add this command before **emulationstation #auto** [replace `/PATH/TO/` with the RetroPie-Manager's full path.]
-
-```sh
-/PATH/TO/RetroPie-Manager/rpmanager.sh --start 2>&1 &
+@reboot /opt/retropie/supplementary/retropie-manager-plus/rpmanager.sh --start
 ```
-
 # Update
 ```sh
 sudo kill -9 $(pgrep -f RetroPie-Manager)
@@ -127,11 +106,20 @@ make install
 sudo kill -9 $(pgrep -f RetroPie-Manager)
 cd 
 rm -rf Retropie-Manager
-git clone https://github.com/RetroPie/RetroPie-Manager.git
+git clone https://github.com/botolo78/RetroPie-Manager.git
 cd RetroPie-Manager
 make install
 ```
 
-# Known bugs
-
-- (FIXED) You'll get a 404 error trying to delete roms
+# Additions to the base RetroPie-Manager:
+- Adds .pbp as a valid PSX ROM extension (DONE)
+- Fixes PSX BIOS hashes (DONE)
+- Increases max uploadable rom size to 10GB from 256MB (DONE)
+- Adds real-time updating to Monitoring page (MOSTLY DONE)
+  * Updates all values on the monitoring screen every 3 seconds (DONE)
+  * Updates file system table if devices are added/removed e.g. a USB (TODO)
+  * **Requires Javascript**
+- Adds custom-data monitoring (TODO)
+- Allows rom sub-directories (TODO)
+- Re-introduces save management (TODO)
+- Migrate to Python 3 (TODO)

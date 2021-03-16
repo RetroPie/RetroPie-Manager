@@ -5,6 +5,7 @@ import os
 
 from django.conf import settings
 from django.views.generic import TemplateView
+from django.http import JsonResponse
 
 # TODO: move to settings
 RECALBOX_THERMAL_BASEDIR = '/sys/class/thermal'
@@ -103,3 +104,14 @@ class MonitoringView(RecalboxSystemInfosMixin, TemplateView):
                 'cpu_thermal_infos': self.get_thermal_infos(os.path.join(RECALBOX_THERMAL_BASEDIR, RECALBOX_THERMAL_DEVICE_CPU_DIR)),
             })
         return context
+
+
+def update_context(request, *args, **kwargs):
+    monitor = MonitoringView()
+    data = {
+        'cpu_infos': monitor.get_cpu_infos(),
+        'memory_infos': monitor.get_memory_infos(),
+        'filesystem_infos': monitor.get_filesystem_infos(),
+        'cpu_thermal_infos': monitor.get_thermal_infos(os.path.join(RECALBOX_THERMAL_BASEDIR, RECALBOX_THERMAL_DEVICE_CPU_DIR)),
+    }
+    return JsonResponse(data)
